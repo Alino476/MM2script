@@ -1,5 +1,5 @@
--- MM2 SCRIPT BY ANDHER (REFINED MODERN EDITION)
--- Features: Premium Draggable UI, Fling All, Target Fling, Interactive Invisibility, Role-Based ESP
+-- MM2 SCRIPT BY ANDHER (FIXED DRAGGABLE EDITION)
+-- Features: Premium Header-Draggable UI, Fling All, Target Fling, Interactive Invisibility, Role-Based ESP
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -29,14 +29,13 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Main Shadow / Outer Container
+-- Main Container
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 300, 0, 480)
 MainFrame.Position = UDim2.new(0.5, -150, 0.4, -240)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22) -- Slate Dark Theme
 MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
 MainFrame.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
@@ -57,7 +56,7 @@ TopBorder.BackgroundColor3 = Color3.fromRGB(235, 45, 45)
 TopBorder.BorderSizePixel = 0
 TopBorder.Parent = MainFrame
 
--- Title Header Banner
+-- Title Header Banner (THIS IS NOW THE DRAG HANDLE)
 local HeaderFrame = Instance.new("Frame")
 HeaderFrame.Name = "HeaderFrame"
 HeaderFrame.Size = UDim2.new(1, 0, 0, 45)
@@ -82,7 +81,7 @@ HeaderLine.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 HeaderLine.BorderSizePixel = 0
 HeaderLine.Parent = HeaderFrame
 
--- Button Utility Creation Function (Clean & Reusable Design)
+-- Button Utility Creation Function
 local function createRefinedButton(name, text, pos, parent)
     local button = Instance.new("TextButton")
     button.Name = name
@@ -105,13 +104,12 @@ local function createRefinedButton(name, text, pos, parent)
     bStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     bStroke.Parent = button
 
-    -- Smooth Interaction Hover Animations
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
         TweenService:Create(bStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(75, 75, 95)}):Play()
     end)
     button.MouseLeave:Connect(function()
-        if button.Text:find("ON") or button.Name:find("All") and button.Active == false then return end
+        if button.Text:find("ON") or (button.Name:find("All") and button.Active == false) then return end
         TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 38)}):Play()
         TweenService:Create(bStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(50, 50, 65)}):Play()
     end)
@@ -119,7 +117,7 @@ local function createRefinedButton(name, text, pos, parent)
     return button, bStroke
 end
 
--- Generate Clean Action Toggles
+-- Action Toggles
 local FlingAllButton, FlingStroke = createRefinedButton("FlingAllButton", "FLING ALL (ONCE)", UDim2.new(0, 20, 0, 65), MainFrame)
 local InvisibleButton, InvisStroke = createRefinedButton("InvisibleButton", "INVISIBLE: OFF", UDim2.new(0, 20, 0, 117), MainFrame)
 local EspButton, EspStroke = createRefinedButton("EspButton", "ROLE ESP: OFF", UDim2.new(0, 20, 0, 169), MainFrame)
@@ -171,39 +169,31 @@ UIPadding.PaddingRight = UDim.new(0, 6)
 UIPadding.Parent = DropdownFrame
 
 -- ==========================================
--- DRAGGABLE LOGIC (Ultra Smooth Engine)
+-- FIXED DRAGGABLE LOGIC (Header-Bound)
 -- ==========================================
-local dragging, dragInput, dragStart, startPos
+local dragToggle = false
+local dragStart = nil
+local startPos = nil
 
-local function update(input)
-    local delta = input.Position - dragStart
-    local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    TweenService:Create(MainFrame, TweenInfo.new(0.12, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Position = targetPos}):Play()
-end
-
-MainFrame.InputBegan:Connect(function(input)
+HeaderFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
+        dragToggle = true
         dragStart = input.Position
         startPos = MainFrame.Position
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
+                dragToggle = false
             end
         end)
     end
 end)
 
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseBehavior or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
 UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
+    if (input.UserInputType == Enum.UserInputType.MouseBehavior or input.UserInputType == Enum.UserInputType.Touch) and dragToggle then
+        local delta = input.Position - dragStart
+        local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        TweenService:Create(MainFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Position = targetPos}):Play()
     end
 end)
 
