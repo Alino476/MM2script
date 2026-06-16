@@ -1,5 +1,5 @@
--- MM2 SCRIPT BY ANDHER (FIXED DRAGGABLE EDITION)
--- Features: Premium Header-Draggable UI, Fling All, Target Fling, Interactive Invisibility, Role-Based ESP
+-- MM2 SCRIPT BY ANDHER (MOBILE & PC DRAGGABLE FIXED)
+-- Features: Header-Bound Touch & Mouse Dragging, Fling All, Target Fling, Interactive Invisibility, Role-Based ESP
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -56,7 +56,7 @@ TopBorder.BackgroundColor3 = Color3.fromRGB(235, 45, 45)
 TopBorder.BorderSizePixel = 0
 TopBorder.Parent = MainFrame
 
--- Title Header Banner (THIS IS NOW THE DRAG HANDLE)
+-- Title Header Banner (THIS IS NOW THE UNIVERSAL TOUCH HANDLE)
 local HeaderFrame = Instance.new("Frame")
 HeaderFrame.Name = "HeaderFrame"
 HeaderFrame.Size = UDim2.new(1, 0, 0, 45)
@@ -169,33 +169,54 @@ UIPadding.PaddingRight = UDim.new(0, 6)
 UIPadding.Parent = DropdownFrame
 
 -- ==========================================
--- FIXED DRAGGABLE LOGIC (Header-Bound)
+-- DUAL MOBILE + PC HARD-LOCKED DRAG ENGINE
 -- ==========================================
-local dragToggle = false
+local dragging = false
 local dragStart = nil
 local startPos = nil
 
+-- Handle Touch (Mobile Screen Inputs)
 HeaderFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragToggle = true
+        dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
-                dragToggle = false
+                dragging = false
             end
         end)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseBehavior or input.UserInputType == Enum.UserInputType.Touch) and dragToggle then
-        local delta = input.Position - dragStart
-        local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        TweenService:Create(MainFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {Position = targetPos}):Play()
+HeaderFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseBehavior or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(
+                startPos.X.Scale, 
+                startPos.X.Offset + delta.X, 
+                startPos.Y.Scale, 
+                startPos.Y.Offset + delta.Y
+            )
+        end
     end
 end)
+
+-- Universal Backup System for Mobile Trackpads
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseBehavior or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
 
 -- ==========================================
 -- FLING MECHANICS
